@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>War Game Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .card { border: 1px solid #ccc; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>War Game Player Dashboard</h1>
+  <input type="text" id="playerCode" placeholder="Enter Player Code">
+  <button onclick="fetchPlayer()">Submit</button>
+
+  <div id="output"></div>
+  <canvas id="chart" width="400" height="200"></canvas>
+
+  <script>
+    async function fetchPlayer() {
+      const code = document.getElementById("playerCode").value;
+      const response = await fetch(`/player/${code}`);
+      const data = await response.json();
+
+      if (data.error) {
+        document.getElementById("output").innerHTML = `<p style="color:red">${data.error}</p>`;
+        return;
+      }
+
+      // Display stats
+      document.getElementById("output").innerHTML = `
+        <div class="card">
+          <h2>${data.PlayerCode}</h2>
+          <p><b>GDP:</b> ${data.GDP}</p>
+          <p><b>Military:</b> ${data.Military}</p>
+        </div>
+      `;
+
+      // Chart
+      new Chart(document.getElementById("chart"), {
+        type: "bar",
+        data: {
+          labels: ["GDP", "Military"],
+          datasets: [{
+            label: data.PlayerCode,
+            data: [data.GDP, data.Military],
+            backgroundColor: ["#3498db", "#e74c3c"]
+          }]
+        }
+      });
+    }
+  </script>
+</body>
+</html>
