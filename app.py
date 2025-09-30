@@ -4,12 +4,13 @@ from googleapiclient.discovery import build
 
 app = Flask(__name__)
 
-# Load service account credentials
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-SERVICE_ACCOUNT_FILE = 'service_account.json'   # My JSON key file
+import os, json
 
-creds = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+
+# Load service account from env var instead of file
+creds_info = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+creds = service_account.Credentials.from_service_account_info(creds_info, scopes=SCOPES)
 
 # Google Sheet info
 SPREADSHEET_ID = '1bzVb7hkWRpWHLoktVNEytjA7vYJEBLOy3vQLhHLVWfc'   # Google Sheets ID
