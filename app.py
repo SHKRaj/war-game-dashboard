@@ -1,4 +1,4 @@
-﻿from flask import Flask, render_template
+﻿from flask import Flask, render_template, jsonify
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import pandas as pd
@@ -14,17 +14,22 @@ creds_info = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 creds = service_account.Credentials.from_service_account_info(creds_info, scopes=SCOPES)
 
 # Spreadsheet details
-SPREADSHEET_ID = "1bzVb7hkWRpWHLoktVNEytjA7vYJEBLOy3vQLhHLVWfc"       # Sheet ID
-RANGE_NAME = "players!A:Z"                  # <-- Sheet Tab Name and Column Range
+SPREADSHEET_ID = "1bzVb7hkWRpWHLoktVNEytjA7vYJEBLOy3vQLhHLVWfc"   # <-- your Sheet ID
+RANGE_NAME = "players!A:Z"                                      # <-- tab name & range
 
-@app.route('/')
-def index():
-    # Fetch data from Google Sheets
+def fetch_sheet_data():
+    """Helper function to fetch Google Sheets data as list of rows."""
     service = build("sheets", "v4", credentials=creds)
     sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
-    values = result.get("values", [])
+    result = sheet.values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range=RANGE_NAME
+    ).execute()
+    return result.get("values", [])
 
+@app.route("/")
+def index():
+    values = fetch_sheet_data()
     if not values:
         return "No data found in Google Sheet"
 
@@ -44,10 +49,27 @@ def index():
     print("\n==== FINAL DATAFRAME BEFORE HTML RENDER ====")
     print(df.to_string(index=False))
 
-    return render_template("index.html",
-                           tables=[df.to_html(classes="data", index=False)],
-                           titles=df.columns.values)
+    return render_template(
+        "index.html",
+        tables=[df.to_html(classes="data", index=False)],
+        titles=df.columns.values
+    )
 
+@app.route("/player/<code>")
+def get_player(code):
+    values = fetch_sheet_data()
+    if not values:
+        return jsonify({"error": "No data found"})
+
+    headers = values[0]
+    rows = values[1:]
+
+    for row in rows:
+        player = dict(zip(headers, row))
+        if player.get("PlayerCode") == code:
+            return jsonify(player)
+
+    return jsonify({"error": f"Player {code} not found"})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
