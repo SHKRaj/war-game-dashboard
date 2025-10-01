@@ -14,22 +14,23 @@ creds_info = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 creds = service_account.Credentials.from_service_account_info(creds_info, scopes=SCOPES)
 
 # Spreadsheet details
-SPREADSHEET_ID = "1bzVb7hkWRpWHLoktVNEytjA7vYJEBLOy3vQLhHLVWfc"   # <-- your Sheet ID
-RANGE_NAME = "players!A:Z"                                      # <-- tab name & range
+SPREADSHEET_ID = "1bzVb7hkWRpWHLoktVNEytjA7vYJEBLOy3vQLhHLVWfc"
+PLAYER_RANGE = "players!A:Z"
+INFO_RANGE = "Info!A6:B"   # ticker messages
 
-def fetch_sheet_data():
+def fetch_sheet_data(range_name):
     """Helper function to fetch Google Sheets data as list of rows."""
     service = build("sheets", "v4", credentials=creds)
-    sheet = service.spreadsheets()
-    result = sheet.values().get(
+    result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID,
-        range=RANGE_NAME
+        range=range_name
     ).execute()
     return result.get("values", [])
 
 @app.route("/")
 def index():
-    values = fetch_sheet_data()
+    # Fetch players data
+    values = fetch_sheet_data(PLAYER_RANGE)
     if not values:
         return "No data found in Google Sheet"
 
@@ -37,27 +38,33 @@ def index():
     data = [[cell.replace("\n", "").strip() for cell in row] for row in values]
     df = pd.DataFrame(data)
 
-    # Remove empty first column if present
     if df.iloc[:, 0].isna().all() or df.iloc[:, 0].eq("").all():
         df = df.iloc[:, 1:]
 
-    df.columns = df.iloc[0]          # First row = headers
+    df.columns = df.iloc[0]
     df = df[1:].reset_index(drop=True)
     df.columns.name = None
 
-    # Debug print in Render logs
+    # Fetch ticker messages from Info!A6:B
+    ticker_values = fetch_sheet_data(INFO_RANGE)
+    ticker_items = [
+        f"{row[0]} - {row[1]}" for row in ticker_values if len(row) >= 2
+    ]
+
     print("\n==== FINAL DATAFRAME BEFORE HTML RENDER ====")
     print(df.to_string(index=False))
+    print("Ticker items:", ticker_items)
 
     return render_template(
         "index.html",
         tables=[df.to_html(classes="data", index=False)],
-        titles=df.columns.values
+        titles=df.columns.values,
+        ticker_items=ticker_items
     )
 
 @app.route("/player/<code>")
 def get_player(code):
-    values = fetch_sheet_data()
+    values = fetch_sheet_data(PLAYER_RANGE)
     if not values:
         return jsonify({"error": "No data found"})
 
