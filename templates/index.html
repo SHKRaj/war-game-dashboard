@@ -33,11 +33,38 @@
       padding: 20px;
       border-radius: 12px;
     }
+    /* News ticker styles */
+    .ticker-container {
+      background: #1e1e1e;
+      overflow: hidden;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      margin-bottom: 20px;
+    }
+    .ticker {
+      display: inline-block;
+      padding-left: 100%;
+      animation: ticker 20s linear infinite;
+    }
+    @keyframes ticker {
+      0%   { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="dashboard-title">⚔️ War Game Player Dashboard ⚔️</div>
+
+    <!-- News Ticker -->
+    <div class="ticker-container">
+      <div class="ticker">
+        {% for item in ticker_items %}
+          <span style="margin-right: 50px;">{{ item }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="dashboard-title">⚔️ The Last Breath of The West ⚔️</div>
 
     <!-- Input -->
     <div class="d-flex justify-content-center mb-4">
