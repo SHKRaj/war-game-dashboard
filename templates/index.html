@@ -44,7 +44,9 @@
     .ticker {
       display: inline-block;
       padding-left: 100%;
-      animation: ticker 20s linear infinite;
+      animation: ticker 8s linear infinite; /* short loop for testing */
+      font-size: 1.2rem;
+      color: yellow; /* make visible */
     }
     @keyframes ticker {
       0%   { transform: translateX(0%); }
@@ -61,29 +63,28 @@
         {% for item in ticker_items %}
           <span style="margin-right: 50px;">{{ item }}</span>
         {% endfor %}
+        <!-- Debug span to test if ticker renders -->
+        <span style="margin-right: 50px; color: red;">TEST MESSAGE</span>
       </div>
     </div>
 
     <div class="dashboard-title">⚔️ The Last Breath of The West ⚔️</div>
 
-    <!-- Input -->
+    <!-- (rest of your dashboard unchanged) -->
     <div class="d-flex justify-content-center mb-4">
       <input type="text" id="playerCode" class="form-control w-25" placeholder="Enter Player Code">
       <button class="btn btn-primary ms-2" onclick="fetchPlayer()">Submit</button>
     </div>
 
-    <!-- Player Info -->
     <div id="playerCard" class="card p-3 text-center">
       <h2 id="playerName">No Player Selected</h2>
       <div id="playerStats"></div>
     </div>
 
-    <!-- Chart -->
     <div class="chart-container">
       <canvas id="chart" height="100"></canvas>
     </div>
 
-    <!-- Paragraphs -->
     <div id="playerParagraphs" class="card p-3 mt-3"></div>
   </div>
 
@@ -100,10 +101,8 @@
         return;
       }
 
-      // Update player name
       document.getElementById("playerName").innerText = data.PlayerCode;
 
-      // Separate data by type
       let statsHTML = "";
       let labels = [];
       let values = [];
@@ -112,31 +111,22 @@
       for (const [key, value] of Object.entries(data)) {
         if (key === "PlayerCode") continue;
 
-        // Numeric values → chart
         if (!isNaN(value) && value !== "") {
           labels.push(key);
           values.push(Number(value));
-        }
-        // Lists → bullet points (newline-separated)
-        else if (typeof value === "string" && value.includes("\n")) {
+        } else if (typeof value === "string" && value.includes("\n")) {
           const items = value.split("\n").map(v => v.trim()).filter(v => v);
           statsHTML += `<p><b>${key}:</b></p><ul>${items.map(i => `<li>${i}</li>`).join("")}</ul>`;
-        }
-        // Long text → paragraph block
-        else if (typeof value === "string" && value.length > 80) {
+        } else if (typeof value === "string" && value.length > 80) {
           paragraphs += `<h5>${key}</h5><p>${value}</p>`;
-        }
-        // Short strings → stats card
-        else {
+        } else {
           statsHTML += `<p><b>${key}:</b> ${value}</p>`;
         }
       }
 
-      // Update UI
       document.getElementById("playerStats").innerHTML = statsHTML;
       document.getElementById("playerParagraphs").innerHTML = paragraphs;
 
-      // Chart (only numeric values)
       new Chart(document.getElementById("chart"), {
         type: "bar",
         data: {
@@ -149,9 +139,7 @@
         },
         options: {
           responsive: true,
-          scales: {
-            y: { beginAtZero: true }
-          }
+          scales: { y: { beginAtZero: true } }
         }
       });
     }
