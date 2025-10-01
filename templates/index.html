@@ -16,6 +16,7 @@
       font-size: 2rem;
       font-weight: bold;
       letter-spacing: 2px;
+      animation: fadeIn 2s ease-in-out;
     }
     .card {
       background-color: #1e1e1e;
@@ -23,6 +24,10 @@
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.4);
       margin-bottom: 20px;
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: scale(1.02);
     }
     .card h2 {
       font-size: 1.5rem;
@@ -32,25 +37,41 @@
       background-color: #1e1e1e;
       padding: 20px;
       border-radius: 12px;
+      animation: fadeInUp 1s ease-in-out;
     }
     /* News ticker styles */
     .ticker-container {
-      background: #1e1e1e;
+      background: linear-gradient(to right, #5a3e1b, #3b2a14);
+      border: 2px solid gold;
+      border-radius: 8px;
       overflow: hidden;
       white-space: nowrap;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.8);
       margin-bottom: 20px;
+      padding: 5px 0;
     }
     .ticker {
       display: inline-block;
       padding-left: 100%;
-      animation: ticker 8s linear infinite; /* short loop for testing */
+      animation: ticker 25s linear infinite;
       font-size: 1.2rem;
-      color: yellow; /* make visible */
+      color: #ffd700;
+    }
+    .ticker-container:hover .ticker {
+      animation-play-state: paused;
     }
     @keyframes ticker {
       0%   { transform: translateX(0%); }
       100% { transform: translateX(-100%); }
+    }
+    /* Fade animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -63,29 +84,30 @@
         {% for item in ticker_items %}
           <span style="margin-right: 50px;">{{ item }}</span>
         {% endfor %}
-        <!-- Debug span to test if ticker renders -->
-        <span style="margin-right: 50px; color: red;">TEST MESSAGE</span>
       </div>
     </div>
 
     <div class="dashboard-title">⚔️ The Last Breath of The West ⚔️</div>
 
-    <!-- (rest of your dashboard unchanged) -->
-    <div class="d-flex justify-content-center mb-4">
+    <!-- Input -->
+    <div class="d-flex justify-content-center mb-4" style="animation: fadeIn 1.5s ease-in-out;">
       <input type="text" id="playerCode" class="form-control w-25" placeholder="Enter Player Code">
       <button class="btn btn-primary ms-2" onclick="fetchPlayer()">Submit</button>
     </div>
 
-    <div id="playerCard" class="card p-3 text-center">
+    <!-- Player Info -->
+    <div id="playerCard" class="card p-3 text-center" style="animation: fadeInUp 1.2s ease-in-out;">
       <h2 id="playerName">No Player Selected</h2>
       <div id="playerStats"></div>
     </div>
 
+    <!-- Chart -->
     <div class="chart-container">
       <canvas id="chart" height="100"></canvas>
     </div>
 
-    <div id="playerParagraphs" class="card p-3 mt-3"></div>
+    <!-- Paragraphs -->
+    <div id="playerParagraphs" class="card p-3 mt-3" style="animation: fadeInUp 1.5s ease-in-out;"></div>
   </div>
 
   <script>
