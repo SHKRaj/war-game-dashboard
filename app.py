@@ -45,15 +45,13 @@ def index():
     df = df[1:].reset_index(drop=True)
     df.columns.name = None
 
-    # Fetch ticker messages from Info!A6:B
+    # Fetch ticker messages
     ticker_values = fetch_sheet_data(INFO_RANGE)
-    ticker_items = [
-        f"{row[0]} - {row[1]}" for row in ticker_values if len(row) >= 2
-    ]
+    ticker_items = [f"{row[0]} - {row[1]}" for row in ticker_values if len(row) >= 2]
 
-    print("\n==== FINAL DATAFRAME BEFORE HTML RENDER ====")
-    print(df.to_string(index=False))
-    print("Ticker items:", ticker_items)
+    # Debug print to logs
+    print("==== TICKER ITEMS ====")
+    print(ticker_items)
 
     return render_template(
         "index.html",
