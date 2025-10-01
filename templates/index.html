@@ -90,6 +90,11 @@
           labels.push(key);
           values.push(Number(value));
         }
+        // Lists → bullet points (newline-separated)
+        else if (typeof value === "string" && value.includes("\n")) {
+          const items = value.split("\n").map(v => v.trim()).filter(v => v);
+          statsHTML += `<p><b>${key}:</b></p><ul>${items.map(i => `<li>${i}</li>`).join("")}</ul>`;
+        }
         // Long text → paragraph block
         else if (typeof value === "string" && value.length > 80) {
           paragraphs += `<h5>${key}</h5><p>${value}</p>`;
