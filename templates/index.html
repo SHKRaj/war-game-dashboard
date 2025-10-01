@@ -55,6 +55,9 @@
     <div class="chart-container">
       <canvas id="chart" height="100"></canvas>
     </div>
+
+    <!-- Paragraphs -->
+    <div id="playerParagraphs" class="card p-3 mt-3"></div>
   </div>
 
   <script>
@@ -66,27 +69,42 @@
       if (data.error) {
         document.getElementById("playerName").innerText = data.error;
         document.getElementById("playerStats").innerHTML = "";
+        document.getElementById("playerParagraphs").innerHTML = "";
         return;
       }
 
       // Update player name
       document.getElementById("playerName").innerText = data.PlayerCode;
 
-      // Build stats dynamically
+      // Separate data by type
       let statsHTML = "";
       let labels = [];
       let values = [];
+      let paragraphs = "";
 
       for (const [key, value] of Object.entries(data)) {
-        if (key !== "PlayerCode") {
-          statsHTML += `<p><b>${key}:</b> ${value}</p>`;
+        if (key === "PlayerCode") continue;
+
+        // Numeric values → chart
+        if (!isNaN(value) && value !== "") {
           labels.push(key);
-          values.push(value);
+          values.push(Number(value));
+        }
+        // Long text → paragraph block
+        else if (typeof value === "string" && value.length > 80) {
+          paragraphs += `<h5>${key}</h5><p>${value}</p>`;
+        }
+        // Short strings → stats card
+        else {
+          statsHTML += `<p><b>${key}:</b> ${value}</p>`;
         }
       }
-      document.getElementById("playerStats").innerHTML = statsHTML;
 
-      // Update chart with all numeric stats
+      // Update UI
+      document.getElementById("playerStats").innerHTML = statsHTML;
+      document.getElementById("playerParagraphs").innerHTML = paragraphs;
+
+      // Chart (only numeric values)
       new Chart(document.getElementById("chart"), {
         type: "bar",
         data: {
