@@ -16,7 +16,8 @@ creds = service_account.Credentials.from_service_account_info(creds_info, scopes
 # Spreadsheet details
 SPREADSHEET_ID = "1bzVb7hkWRpWHLoktVNEytjA7vYJEBLOy3vQLhHLVWfc"
 PLAYER_RANGE = "players!A:Z"
-INFO_RANGE = "Info!A6:B"   # ticker messages
+INFO_RANGE = "Info!A6:B"          # news ticker
+SUGGESTIONS_RANGE = "Info!C6:D"   # game suggestions
 
 def fetch_sheet_data(range_name):
     """Helper function to fetch Google Sheets data as list of rows."""
@@ -49,15 +50,16 @@ def index():
     ticker_values = fetch_sheet_data(INFO_RANGE)
     ticker_items = [f"{row[0]} - {row[1]}" for row in ticker_values if len(row) >= 2]
 
-    # Debug print to logs
-    print("==== TICKER ITEMS ====")
-    print(ticker_items)
+    # Fetch suggestions
+    suggestion_values = fetch_sheet_data(SUGGESTIONS_RANGE)
+    suggestion_items = [f"{row[0]} - {row[1]}" for row in suggestion_values if len(row) >= 2]
 
     return render_template(
         "index.html",
         tables=[df.to_html(classes="data", index=False)],
         titles=df.columns.values,
-        ticker_items=ticker_items
+        ticker_items=ticker_items,
+        suggestion_items=suggestion_items
     )
 
 @app.route("/player/<code>")
