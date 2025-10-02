@@ -12,11 +12,28 @@
     }
     .dashboard-title {
       text-align: center;
-      margin: 20px 0;
+      margin: 20px 0 10px 0;
       font-size: 2rem;
       font-weight: bold;
       letter-spacing: 2px;
       animation: fadeIn 2s ease-in-out;
+    }
+    .suggestion-box {
+      background: #3b2a14;
+      color: #ffd700;
+      border: 1px solid gold;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-size: 1rem;
+      margin: 0 auto 20px auto;
+      width: 80%;
+      min-height: 40px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      transition: transform 0.3s ease;
+    }
+    .suggestion-box:hover {
+      transform: scale(1.03);
     }
     .card {
       background-color: #1e1e1e;
@@ -89,6 +106,11 @@
 
     <div class="dashboard-title">⚔️ The Last Breath of The West ⚔️</div>
 
+    <!-- Suggestions Box -->
+    <div class="suggestion-box" id="suggestionBox">
+      Loading suggestions...
+    </div>
+
     <!-- Input -->
     <div class="d-flex justify-content-center mb-4" style="animation: fadeIn 1.5s ease-in-out;">
       <input type="text" id="playerCode" class="form-control w-25" placeholder="Enter Player Code">
@@ -111,6 +133,29 @@
   </div>
 
   <script>
+    // Suggestions auto-rotation
+    const suggestions = [
+      {% for s in suggestion_items %}
+        "{{ s }}",
+      {% endfor %}
+    ];
+    let suggestionIndex = 0;
+    const suggestionBox = document.getElementById("suggestionBox");
+
+    function rotateSuggestions() {
+      if (suggestions.length > 0) {
+        suggestionBox.innerText = suggestions[suggestionIndex];
+        suggestionIndex = (suggestionIndex + 1) % suggestions.length;
+      } else {
+        suggestionBox.innerText = "No suggestions available.";
+      }
+    }
+
+    // Start rotation every 10 seconds
+    rotateSuggestions();
+    setInterval(rotateSuggestions, 10000);
+
+    // Fetch player logic (unchanged)
     async function fetchPlayer() {
       const code = document.getElementById("playerCode").value;
       const response = await fetch(`/player/${code}`);
