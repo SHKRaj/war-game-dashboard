@@ -17,7 +17,7 @@ creds = service_account.Credentials.from_service_account_info(creds_info, scopes
 SPREADSHEET_ID = "1bzVb7hkWRpWHLoktVNEytjA7vYJEBLOy3vQLhHLVWfc"
 PLAYER_RANGE = "players!A:Z"
 INFO_RANGE = "Info!A6:B"          # news ticker
-SUGGESTIONS_RANGE = "Info!C6:D"   # game suggestions
+SUGGESTIONS_RANGE = "Info!C6:D"   # game suggestionss
 
 def fetch_sheet_data(range_name):
     """Helper function to fetch Google Sheets data as list of rows."""
@@ -30,22 +30,6 @@ def fetch_sheet_data(range_name):
 
 @app.route("/")
 def index():
-    # Fetch players data
-    values = fetch_sheet_data(PLAYER_RANGE)
-    if not values:
-        return "No data found in Google Sheet"
-
-    # Clean into DataFrame
-    data = [[cell.replace("\n", "").strip() for cell in row] for row in values]
-    df = pd.DataFrame(data)
-
-    if df.iloc[:, 0].isna().all() or df.iloc[:, 0].eq("").all():
-        df = df.iloc[:, 1:]
-
-    df.columns = df.iloc[0]
-    df = df[1:].reset_index(drop=True)
-    df.columns.name = None
-
     # Fetch ticker messages
     ticker_values = fetch_sheet_data(INFO_RANGE)
     ticker_items = [f"{row[0]} - {row[1]}" for row in ticker_values if len(row) >= 2]
@@ -56,8 +40,6 @@ def index():
 
     return render_template(
         "index.html",
-        tables=[df.to_html(classes="data", index=False)],
-        titles=df.columns.values,
         ticker_items=ticker_items,
         suggestion_items=suggestion_items
     )
@@ -72,9 +54,18 @@ def get_player(code):
     rows = values[1:]
 
     for row in rows:
-        player = dict(zip(headers, row))
-        if player.get("PlayerCode") == code:
-            return jsonify(player)
+        if row[0] == code:  # PlayerCode in col A
+            player = dict(zip(headers, row))
+
+            structured = {
+                "PlayerCode": player.get("PlayerCode"),
+                "NationName": player.get(headers[1]),  # col B
+                "QuickStats": {h: player.get(h) for h in headers[2:6]},
+                "Revenues": {h: player.get(h) for h in headers[6:11]},
+                "Expenditures": {h: player.get(h) for h in headers[11:16]},
+                "Other": {h: player.get(h) for h in headers[16:]}
+            }
+            return jsonify(structured)
 
     return jsonify({"error": f"Player {code} not found"})
 
