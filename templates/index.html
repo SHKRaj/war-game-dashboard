@@ -194,12 +194,19 @@
       let paragraphs = "";
       for (const [key, value] of Object.entries(data.Other)) {
         if (!value) continue;
-        if (typeof value === "string" && value.includes("\n")) {
-          const items = value.split("\n").map(v => v.trim()).filter(v => v);
-          paragraphs += `<p><b>${key}:</b></p><ul>${items.map(i => `<li>${i}</li>`).join("")}</ul>`;
-        } else if (typeof value === "string" && value.length > 80) {
+
+        // {} → bullet list
+        if (typeof value === "string" && value.includes("{}")) {
+          const items = value.split(/[\n;]+/).map(v => v.trim()).filter(v => v.startsWith("{}"));
+          const cleaned = items.map(v => v.replace(/^\{\}\s*/, ""));
+          paragraphs += `<p><b>${key}:</b></p><ul>${cleaned.map(i => `<li>${i}</li>`).join("")}</ul>`;
+        }
+        // Long paragraphs
+        else if (typeof value === "string" && value.length > 80) {
           paragraphs += `<h5>${key}</h5><p>${value}</p>`;
-        } else {
+        }
+        // Short values
+        else {
           paragraphs += `<p><b>${key}:</b> ${value}</p>`;
         }
       }
