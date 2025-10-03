@@ -31,6 +31,11 @@
       min-height: 40px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.6);
       transition: transform 0.3s ease;
+      opacity: 1;
+    }
+    .suggestion-box.fade {
+      opacity: 0;
+      transition: opacity 1s ease;
     }
     .suggestion-box:hover {
       transform: scale(1.03);
@@ -133,7 +138,7 @@
   </div>
 
   <script>
-    // Suggestions auto-rotation
+    // Suggestions auto-rotation with fade effect
     const suggestions = [
       {% for s in suggestion_items %}
         "{{ s }}",
@@ -144,8 +149,13 @@
 
     function rotateSuggestions() {
       if (suggestions.length > 0) {
-        suggestionBox.innerText = suggestions[suggestionIndex];
-        suggestionIndex = (suggestionIndex + 1) % suggestions.length;
+        // Fade out
+        suggestionBox.classList.add("fade");
+        setTimeout(() => {
+          suggestionBox.innerText = suggestions[suggestionIndex];
+          suggestionBox.classList.remove("fade");
+          suggestionIndex = (suggestionIndex + 1) % suggestions.length;
+        }, 1000); // match fade duration
       } else {
         suggestionBox.innerText = "No suggestions available.";
       }
