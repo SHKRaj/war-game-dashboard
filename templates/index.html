@@ -37,19 +37,12 @@
       opacity: 0;
       transition: opacity 1s ease;
     }
-    .suggestion-box:hover {
-      transform: scale(1.03);
-    }
     .card {
       background-color: #1e1e1e;
       border: 1px solid #333;
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.4);
       margin-bottom: 20px;
-      transition: transform 0.3s ease;
-    }
-    .card:hover {
-      transform: scale(1.02);
     }
     .card h2 {
       font-size: 1.5rem;
@@ -59,16 +52,13 @@
       background-color: #1e1e1e;
       padding: 20px;
       border-radius: 12px;
-      animation: fadeInUp 1s ease-in-out;
     }
-    /* News ticker styles */
     .ticker-container {
       background: linear-gradient(to right, #5a3e1b, #3b2a14);
       border: 2px solid gold;
       border-radius: 8px;
       overflow: hidden;
       white-space: nowrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.8);
       margin-bottom: 20px;
       padding: 5px 0;
     }
@@ -79,21 +69,9 @@
       font-size: 1.2rem;
       color: #ffd700;
     }
-    .ticker-container:hover .ticker {
-      animation-play-state: paused;
-    }
     @keyframes ticker {
       0%   { transform: translateX(0%); }
       100% { transform: translateX(-100%); }
-    }
-    /* Fade animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -112,113 +90,110 @@
     <div class="dashboard-title">⚔️ The Last Breath of The West ⚔️</div>
 
     <!-- Suggestions Box -->
-    <div class="suggestion-box" id="suggestionBox">
-      Loading suggestions...
-    </div>
+    <div class="suggestion-box" id="suggestionBox">Loading suggestions...</div>
 
     <!-- Input -->
-    <div class="d-flex justify-content-center mb-4" style="animation: fadeIn 1.5s ease-in-out;">
+    <div class="d-flex justify-content-center mb-4">
       <input type="text" id="playerCode" class="form-control w-25" placeholder="Enter Player Code">
       <button class="btn btn-primary ms-2" onclick="fetchPlayer()">Submit</button>
     </div>
 
     <!-- Player Info -->
-    <div id="playerCard" class="card p-3 text-center" style="animation: fadeInUp 1.2s ease-in-out;">
-      <h2 id="playerName">No Player Selected</h2>
-      <div id="playerStats"></div>
+    <div id="playerCard" class="card p-3 text-center">
+      <h2 id="playerNation">No Nation Selected</h2>
+      <div id="quickStats"></div>
     </div>
 
-    <!-- Chart -->
+    <!-- Revenues Chart -->
     <div class="chart-container">
-      <canvas id="chart" height="100"></canvas>
+      <h4>Revenues</h4>
+      <canvas id="revenueChart" height="100"></canvas>
     </div>
 
-    <!-- Paragraphs -->
-    <div id="playerParagraphs" class="card p-3 mt-3" style="animation: fadeInUp 1.5s ease-in-out;"></div>
+    <!-- Expenditures Chart -->
+    <div class="chart-container">
+      <h4>Expenditures</h4>
+      <canvas id="expenditureChart" height="100"></canvas>
+    </div>
+
+    <!-- Paragraphs / Other -->
+    <div id="playerParagraphs" class="card p-3 mt-3"></div>
   </div>
 
   <script>
-    // Suggestions auto-rotation with fade effect
+    // Suggestions auto-rotation
     const suggestions = [
-      {% for s in suggestion_items %}
-        "{{ s }}",
-      {% endfor %}
+      {% for s in suggestion_items %}"{{ s }}",{% endfor %}
     ];
     let suggestionIndex = 0;
     const suggestionBox = document.getElementById("suggestionBox");
 
     function rotateSuggestions() {
       if (suggestions.length > 0) {
-        // Fade out
         suggestionBox.classList.add("fade");
         setTimeout(() => {
           suggestionBox.innerText = suggestions[suggestionIndex];
           suggestionBox.classList.remove("fade");
           suggestionIndex = (suggestionIndex + 1) % suggestions.length;
-        }, 1000); // match fade duration
-      } else {
-        suggestionBox.innerText = "No suggestions available.";
+        }, 1000);
       }
     }
-
-    // Start rotation every 10 seconds
     rotateSuggestions();
     setInterval(rotateSuggestions, 10000);
 
-    // Fetch player logic (unchanged)
+    // Fetch Player Data
     async function fetchPlayer() {
       const code = document.getElementById("playerCode").value;
       const response = await fetch(`/player/${code}`);
       const data = await response.json();
 
       if (data.error) {
-        document.getElementById("playerName").innerText = data.error;
-        document.getElementById("playerStats").innerHTML = "";
+        document.getElementById("playerNation").innerText = data.error;
+        document.getElementById("quickStats").innerHTML = "";
         document.getElementById("playerParagraphs").innerHTML = "";
         return;
       }
 
-      document.getElementById("playerName").innerText = data.PlayerCode;
+      // Nation name
+      document.getElementById("playerNation").innerText = data.NationName;
 
-      let statsHTML = "";
-      let labels = [];
-      let values = [];
+      // Quick Stats
+      let quickHTML = "";
+      for (const [key, value] of Object.entries(data.QuickStats)) {
+        quickHTML += `<p><b>${key}:</b> ${value}</p>`;
+      }
+      document.getElementById("quickStats").innerHTML = quickHTML;
+
+      // Revenues Pie
+      const revLabels = Object.keys(data.Revenues);
+      const revValues = Object.values(data.Revenues).map(v => Number(v) || 0);
+      new Chart(document.getElementById("revenueChart"), {
+        type: "pie",
+        data: { labels: revLabels, datasets: [{ data: revValues, backgroundColor: ["#4db8ff","#6aff8f","#ffdd57","#ff6b6b","#a57bff"] }] }
+      });
+
+      // Expenditures Pie
+      const expLabels = Object.keys(data.Expenditures);
+      const expValues = Object.values(data.Expenditures).map(v => Number(v) || 0);
+      new Chart(document.getElementById("expenditureChart"), {
+        type: "pie",
+        data: { labels: expLabels, datasets: [{ data: expValues, backgroundColor: ["#ff6b6b","#ffd93d","#6aff8f","#4db8ff","#a57bff"] }] }
+      });
+
+      // Other fields
       let paragraphs = "";
-
-      for (const [key, value] of Object.entries(data)) {
-        if (key === "PlayerCode") continue;
-
-        if (!isNaN(value) && value !== "") {
-          labels.push(key);
-          values.push(Number(value));
-        } else if (typeof value === "string" && value.includes("\n")) {
+      for (const [key, value] of Object.entries(data.Other)) {
+        if (!value) continue;
+        if (typeof value === "string" && value.includes("\n")) {
           const items = value.split("\n").map(v => v.trim()).filter(v => v);
-          statsHTML += `<p><b>${key}:</b></p><ul>${items.map(i => `<li>${i}</li>`).join("")}</ul>`;
+          paragraphs += `<p><b>${key}:</b></p><ul>${items.map(i => `<li>${i}</li>`).join("")}</ul>`;
         } else if (typeof value === "string" && value.length > 80) {
           paragraphs += `<h5>${key}</h5><p>${value}</p>`;
         } else {
-          statsHTML += `<p><b>${key}:</b> ${value}</p>`;
+          paragraphs += `<p><b>${key}:</b> ${value}</p>`;
         }
       }
-
-      document.getElementById("playerStats").innerHTML = statsHTML;
       document.getElementById("playerParagraphs").innerHTML = paragraphs;
-
-      new Chart(document.getElementById("chart"), {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: data.PlayerCode,
-            data: values,
-            backgroundColor: "#4db8ff"
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: { y: { beginAtZero: true } }
-        }
-      });
     }
   </script>
 </body>
