@@ -7,7 +7,7 @@
   <style>
     body {
       background-color: #121212;
-      color: #f1f1f1;
+      color: #ffffff; /* make all text white */
       font-family: "Segoe UI", sans-serif;
     }
     .dashboard-title {
@@ -17,6 +17,7 @@
       font-weight: bold;
       letter-spacing: 2px;
       animation: fadeIn 2s ease-in-out;
+      color: #ffffff; /* ensure title is bright white */
     }
     .suggestion-box {
       background: #3b2a14;
@@ -43,6 +44,7 @@
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.4);
       margin-bottom: 20px;
+      color: #ffffff; /* make sure card text is white */
     }
     .card h2 {
       font-size: 1.5rem;
@@ -50,8 +52,14 @@
     }
     .chart-container {
       background-color: #1e1e1e;
-      padding: 20px;
+      padding: 10px;
       border-radius: 12px;
+      max-width: 400px; /* limit chart width */
+      margin: 0 auto 20px auto; /* center and give space below */
+    }
+    canvas {
+      max-width: 100%;
+      max-height: 250px; /* shrink pie charts */
     }
     .ticker-container {
       background: linear-gradient(to right, #5a3e1b, #3b2a14);
@@ -106,14 +114,14 @@
 
     <!-- Revenues Chart -->
     <div class="chart-container">
-      <h4>Revenues</h4>
-      <canvas id="revenueChart" height="100"></canvas>
+      <h4 class="text-center">Revenues</h4>
+      <canvas id="revenueChart"></canvas>
     </div>
 
     <!-- Expenditures Chart -->
     <div class="chart-container">
-      <h4>Expenditures</h4>
-      <canvas id="expenditureChart" height="100"></canvas>
+      <h4 class="text-center">Expenditures</h4>
+      <canvas id="expenditureChart"></canvas>
     </div>
 
     <!-- Paragraphs / Other -->
@@ -169,7 +177,8 @@
       const revValues = Object.values(data.Revenues).map(v => Number(v) || 0);
       new Chart(document.getElementById("revenueChart"), {
         type: "pie",
-        data: { labels: revLabels, datasets: [{ data: revValues, backgroundColor: ["#4db8ff","#6aff8f","#ffdd57","#ff6b6b","#a57bff"] }] }
+        data: { labels: revLabels, datasets: [{ data: revValues, backgroundColor: ["#4db8ff","#6aff8f","#ffdd57","#ff6b6b","#a57bff"] }] },
+        options: { plugins: { legend: { labels: { color: "#ffffff" } } } }
       });
 
       // Expenditures Pie
@@ -177,7 +186,8 @@
       const expValues = Object.values(data.Expenditures).map(v => Number(v) || 0);
       new Chart(document.getElementById("expenditureChart"), {
         type: "pie",
-        data: { labels: expLabels, datasets: [{ data: expValues, backgroundColor: ["#ff6b6b","#ffd93d","#6aff8f","#4db8ff","#a57bff"] }] }
+        data: { labels: expLabels, datasets: [{ data: expValues, backgroundColor: ["#ff6b6b","#ffd93d","#6aff8f","#4db8ff","#a57bff"] }] },
+        options: { plugins: { legend: { labels: { color: "#ffffff" } } } }
       });
 
       // Other fields
