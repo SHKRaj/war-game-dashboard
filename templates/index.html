@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>The Last Breath of the West</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: #ffffff; /* make all text white */
+      font-family: "Segoe UI", sans-serif;
+    }
+    .dashboard-title {
+      text-align: center;
+      margin: 20px 0 10px 0;
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      animation: fadeIn 2s ease-in-out;
+      color: #ffffff; /* ensure title is bright white */
+    }
+    .suggestion-box {
+      background: #3b2a14;
+      color: #ffd700;
+      border: 1px solid gold;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-size: 1rem;
+      margin: 0 auto 20px auto;
+      width: 80%;
+      min-height: 40px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      transition: transform 0.3s ease;
+      opacity: 1;
+    }
+    .suggestion-box.fade {
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    .card {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      margin-bottom: 20px;
+      color: #ffffff; /* make sure card text is white */
+    }
+    .card h2 {
+      font-size: 1.5rem;
+      color: #4db8ff;
+    }
+    .chart-container {
+      background-color: #1e1e1e;
+      padding: 10px;
+      border-radius: 12px;
+      max-width: 400px; /* limit chart width */
+      margin: 0 auto 20px auto; /* center and give space below */
+    }
+    canvas {
+      max-width: 100%;
+      max-height: 250px; /* shrink pie charts */
+    }
+    .ticker-container {
+      background: linear-gradient(to right, #5a3e1b, #3b2a14);
+      border: 2px solid gold;
+      border-radius: 8px;
+      overflow: hidden;
+      white-space: nowrap;
+      margin-bottom: 20px;
+      padding: 5px 0;
+    }
+    .ticker {
+      display: inline-block;
+      padding-left: 100%;
+      animation: ticker 25s linear infinite;
+      font-size: 1.2rem;
+      color: #ffd700;
+    }
+    .ticker-container:hover .ticker {
+      animation-play-state: paused; /* pause ticker on hover */
+    }
+    @keyframes ticker {
+      0%   { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- News Ticker -->
+    <div class="ticker-container">
+      <div class="ticker">
+        {% for item in ticker_items %}
+          <span style="margin-right: 50px;">{{ item }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="dashboard-title">⚔️ The Last Breath of The West ⚔️</div>
+
+    <!-- Suggestions Box -->
+    <div class="suggestion-box" id="suggestionBox">Loading suggestions...</div>
+
+    <!-- Input -->
+    <div class="d-flex justify-content-center mb-4">
+      <input type="text" id="playerCode" class="form-control w-25" placeholder="Enter Player Code">
+      <button class="btn btn-primary ms-2" onclick="fetchPlayer()">Submit</button>
+    </div>
+
+    <!-- Player Info -->
+    <div id="playerCard" class="card p-3 text-center">
+      <h2 id="playerNation">No Nation Selected</h2>
+      <div id="quickStats"></div>
+    </div>
+
+    <!-- Revenues Chart -->
+    <div class="chart-container">
+      <h4 class="text-center">Revenues</h4>
+      <canvas id="revenueChart"></canvas>
+    </div>
+
+    <!-- Expenditures Chart -->
+    <div class="chart-container">
+      <h4 class="text-center">Expenditures</h4>
+      <canvas id="expenditureChart"></canvas>
+    </div>
+
+    <!-- Paragraphs / Other -->
+    <div id="playerParagraphs" class="card p-3 mt-3"></div>
+  </div>
+
+  <script>
+    // Suggestions auto-rotation
+    const suggestions = [
+      {% for s in suggestion_items %}"{{ s }}",{% endfor %}
+    ];
+    let suggestionIndex = 0;
+    const suggestionBox = document.getElementById("suggestionBox");
+
+    function rotateSuggestions() {
+      if (suggestions.length > 0) {
+        suggestionBox.classList.add("fade");
+        setTimeout(() => {
+          suggestionBox.innerText = suggestions[suggestionIndex];
+          suggestionBox.classList.remove("fade");
+          suggestionIndex = (suggestionIndex + 1) % suggestions.length;
+        }, 1000);
+      }
+    }
+    rotateSuggestions();
+    setInterval(rotateSuggestions, 10000);
+
+    // Fetch Player Data
+    async function fetchPlayer() {
+      const code = document.getElementById("playerCode").value;
+      const response = await fetch(`/player/${code}`);
+      const data = await response.json();
+
+      if (data.error) {
+        document.getElementById("playerNation").innerText = data.error;
+        document.getElementById("quickStats").innerHTML = "";
+        document.getElementById("playerParagraphs").innerHTML = "";
+        return;
+      }
+
+      // Nation name
+      document.getElementById("playerNation").innerText = data.NationName;
+
+      // Quick Stats
+      let quickHTML = "";
+      for (const [key, value] of Object.entries(data.QuickStats)) {
+        quickHTML += `<p><b>${key}:</b> ${value}</p>`;
+      }
+      document.getElementById("quickStats").innerHTML = quickHTML;
+
+      // Revenues Pie
+      const revLabels = Object.keys(data.Revenues);
+      const revValues = Object.values(data.Revenues).map(v => Number(v) || 0);
+      new Chart(document.getElementById("revenueChart"), {
+        type: "pie",
+        data: { labels: revLabels, datasets: [{ data: revValues, backgroundColor: ["#4db8ff","#6aff8f","#ffdd57","#ff6b6b","#a57bff"] }] },
+        options: { plugins: { legend: { labels: { color: "#ffffff" } } } }
+      });
+
+      // Expenditures Pie
+      const expLabels = Object.keys(data.Expenditures);
+      const expValues = Object.values(data.Expenditures).map(v => Number(v) || 0);
+      new Chart(document.getElementById("expenditureChart"), {
+        type: "pie",
+        data: { labels: expLabels, datasets: [{ data: expValues, backgroundColor: ["#ff6b6b","#ffd93d","#6aff8f","#4db8ff","#a57bff"] }] },
+        options: { plugins: { legend: { labels: { color: "#ffffff" } } } }
+      });
+
+      // Other fields
+      let paragraphs = "";
+      for (const [key, value] of Object.entries(data.Other)) {
+        if (!value) continue;
+
+        // {} → bullet list
+        if (typeof value === "string" && value.includes("{}")) {
+          const items = value.split(/[\n;]+/).map(v => v.trim()).filter(v => v.startsWith("{}"));
+          const cleaned = items.map(v => v.replace(/^\{\}\s*/, "").trim());
+          paragraphs += `<p><b>${key}:</b></p><ul>${cleaned.map(i => `<li>${i}</li>`).join("")}</ul>`;
+        }
+        // Long paragraphs
+        else if (typeof value === "string" && value.length > 80) {
+          paragraphs += `<h5>${key}</h5><p>${value}</p>`;
+        }
+        // Short values
+        else {
+          paragraphs += `<p><b>${key}:</b> ${value}</p>`;
+        }
+      }
+      document.getElementById("playerParagraphs").innerHTML = paragraphs;
+    }
+  </script>
+</body>
+</html>
