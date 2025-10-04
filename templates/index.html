@@ -200,9 +200,14 @@
 
         // {} → bullet list
         if (typeof value === "string" && value.includes("{}")) {
-          const items = value.split(/[\n;]+/).map(v => v.trim()).filter(v => v.startsWith("{}"));
+          const items = value
+            .split(/[\n;]+/)              // split on newlines or semicolons
+            .map(v => v.trim())
+            .filter(v => v.startsWith("{}"));
           const cleaned = items.map(v => v.replace(/^\{\}\s*/, "").trim());
-          paragraphs += `<p><b>${key}:</b></p><ul>${cleaned.map(i => `<li>${i}</li>`).join("")}</ul>`;
+          if (cleaned.length > 0) {
+            paragraphs += `<p><b>${key}:</b></p><ul>${cleaned.map(i => `<li>${i}</li>`).join("")}</ul>`;
+          }
         }
         // Long paragraphs
         else if (typeof value === "string" && value.length > 80) {
