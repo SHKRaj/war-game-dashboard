@@ -15,7 +15,7 @@ creds = service_account.Credentials.from_service_account_info(creds_info, scopes
 
 # Spreadsheet details
 SPREADSHEET_ID = "1bzVb7hkWRpWHLoktVNEytjA7vYJEBLOy3vQLhHLVWfc"
-PLAYER_RANGE = "players!A:Z"
+PLAYER_RANGE = "players!A:AB"
 INFO_RANGE = "Info!A6:B"          # news ticker
 SUGGESTIONS_RANGE = "Info!C6:D"   # game suggestionss
 
