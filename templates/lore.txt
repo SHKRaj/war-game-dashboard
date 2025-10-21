@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lore Archive | The Last Breath of the West</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #121212;
+      color: #f1f1f1;
+      font-family: "Georgia", serif;
+      line-height: 1.8;
+      padding: 40px;
+    }
+    h1 {
+      text-align: center;
+      color: #ffd700;
+      margin-bottom: 30px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .lore-entry {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      padding: 25px;
+      margin-bottom: 25px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .lore-entry:hover {
+      transform: scale(1.01);
+      box-shadow: 0 6px 12px rgba(255,215,0,0.2);
+    }
+    .lore-entry h3 {
+      color: #4db8ff;
+      margin-bottom: 15px;
+      font-size: 1.4rem;
+    }
+    .lore-entry p {
+      text-align: justify;
+      white-space: pre-line;
+    }
+    a.back-link {
+      display: block;
+      text-align: center;
+      margin-top: 40px;
+      color: #ffd700;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a.back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>📜 Lore Archive 📜</h1>
+
+  {% for entry in lore_entries %}
+    <div class="lore-entry">
+      <h3>{{ entry.title }}</h3>
+      <p>{{ entry.text }}</p>
+    </div>
+  {% endfor %}
+
+  <a href="/" class="back-link">⬅ Return to Dashboard</a>
+</body>
+</html>

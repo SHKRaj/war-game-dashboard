@@ -69,6 +69,20 @@ def get_player(code):
 
     return jsonify({"error": f"Player {code} not found"})
 
+@app.route("/lore")
+def lore():
+    lore_values = fetch_sheet_data("Lore!A:B")  # Tab with two columns: Title | Text
+    if not lore_values:
+        return "No lore data found."
+
+    lore_entries = []
+    for row in lore_values:
+        if len(row) >= 2:
+            lore_entries.append({"title": row[0], "text": row[1]})
+    
+    return render_template("lore.html", lore_entries=lore_entries)
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
